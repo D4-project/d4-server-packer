@@ -1,6 +1,6 @@
-# Build Automated Machine Images for MISP
+# Build Automated Machine Images for D4
 
-Build a vbox virtual machine for D4 based on Ubuntu 18.04 server.
+Build a vbox virtual machine for D4-server based on Ubuntu 18.04 server.
 
 ## Requirements
 
@@ -16,4 +16,3 @@ Launch the generation with the VirtualBox builder:
 
 A VirtualBox image will be generated and stored in the folder
 *output-virtualbox-iso*.
-
