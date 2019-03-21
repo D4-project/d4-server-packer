@@ -1,0 +1,139 @@
+{
+    "_comment": "D4 VM Autogen packer build system",
+    "variables": {
+        "boot_command_prefix": "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "cpus": "1",
+        "desktop": "false",
+        "disk_size": "8000",
+        "headless": "true",
+        "hostname": "d4-server",
+        "http_proxy": "{{env `http_proxy`}}",
+        "https_proxy": "{{env `https_proxy`}}",
+        "iso_checksum": "57c3a25f2c5fd61596ce39afbff44dd49b0089a2",
+        "iso_checksum_type": "sha1",
+        "iso_name": "ubuntu-18.04.2-server-amd64.iso",
+        "iso_path": "iso",
+        "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.2-server-amd64.iso",
+        "memory": "2048",
+        "no_proxy": "{{env `no_proxy`}}",
+        "ovftool_path": "ovftool",
+        "preseed":"preseed.cfg",
+        "ssh_fullname": "d4",
+        "ssh_name": "d4",
+        "ssh_pass": "Password1234",
+        "update": "true",
+        "vm_description": "D4, a large-scale distributed sensor network to monitor DDoS and other malicious activities relying on an open and collaborative project.",
+        "vm_name": "D4_DEMO",
+        "vm_version": "1.0"
+    },
+
+    "builders": [{
+        "disk_size": "{{user `disk_size`}}",
+        "format": "ova",
+        "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+        "guest_os_type": "Ubuntu_64",
+        "hard_drive_interface": "sata",
+        "headless": "{{user `headless`}}",
+        "http_directory" : "preseeds",
+        "http_port_min" : 9001,
+        "http_port_max" : 9011,
+        "iso_checksum": "{{ user `iso_checksum` }}",
+        "iso_checksum_type": "{{ user `iso_checksum_type` }}",
+        "iso_urls": [
+            "{{ user `iso_path` }}/{{ user `iso_name` }}",
+            "{{ user `iso_url` }}"
+        ],
+        "shutdown_command": "echo {{user `ssh_pass`}} | sudo -S shutdown -P now",
+        "ssh_username": "{{user `ssh_name`}}",
+        "ssh_password": "{{user `ssh_pass`}}",
+        "ssh_wait_timeout": "20m",
+        "ssh_pty" : "true",
+        "type": "virtualbox-iso",
+        "vm_name": "{{user `vm_name`}}",
+
+        "export_opts":
+             [
+                "--manifest",
+                "--vsys", "0",
+                "--eulafile", "/tmp/LICENSE-D4",
+                "--description", "{{user `vm_description`}}",
+                "--version", "{{user `vm_version`}}"
+             ],
+
+        "vboxmanage": [
+            ["modifyvm", "{{.Name}}", "--memory", "{{user `memory`}}"],
+            ["modifyvm", "{{.Name}}", "--natpf1", "ssh,tcp,,2222,0.0.0.0,22" ],
+            ["modifyvm", "{{.Name}}", "--natpf1", "http,tcp,,7000,,7000" ],
+            ["modifyvm", "{{.Name}}", "--natpf1", "d4tcp,tcp,,4443,,4443" ],
+            ["modifyvm", "{{.Name}}", "--audio", "none"],
+            ["modifyvm", "{{.Name}}", "--usb", "off"],
+            ["modifyvm", "{{.Name}}", "--vrde", "off"],
+            ["modifyvm", "{{.Name}}", "--cpus", "{{user `cpus`}}"],
+            ["modifyvm", "{{.Name}}", "--vram", "32"]
+        ],
+
+        "boot_command": [
+            "{{ user `boot_command_prefix` }}",
+            "/install/vmlinuz noapic ",
+            "initrd=/install/initrd.gz ",
+            "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+            "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
+            "hostname={{ user `hostname` }} ",
+            "grub-installer/bootdev=/dev/sda<wait> ",
+            "fb=false debconf/frontend=noninteractive ",
+            "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
+            "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
+            "passwd/user-fullname={{ user `ssh_fullname` }} ",
+            "passwd/user-password={{ user `ssh_password` }} ",
+            "passwd/user-password-again={{ user `ssh_password` }} ",
+            "passwd/username={{ user `ssh_username` }} ",
+            "-- <enter>"
+        ]
+    }],
+
+    "provisioners": [{
+        "environment_vars": [
+            "DESKTOP={{user `desktop`}}",
+            "UPDATE={{user `update`}}",
+            "http_proxy={{user `http_proxy`}}",
+            "https_proxy={{user `https_proxy`}}",
+            "no_proxy={{user `no_proxy`}}"
+        ],
+        "type": "shell",
+        "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        "inline": [
+            "echo '%sudo    ALL=(ALL)  NOPASSWD:ALL' >> /etc/sudoers"
+        ]
+    },
+    {
+        "type": "shell",
+        "execute_command" : "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        "script": "scripts/users.sh"
+    },
+    {
+        "type": "shell",
+        "execute_command" : "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        "script": "scripts/interfaces.sh"
+    },
+    {
+        "type": "shell",
+        "execute_command" : "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        "script": "scripts/bootstrap.sh",
+        "pause_before": "10s"
+    },
+    {
+        "type": "shell",
+        "execute_command" : "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        "script": "scripts/clean.sh",
+        "expect_disconnect": "true",
+        "pause_before": "30s"
+    }
+    ],
+
+    "post-processors":[{
+        "keep_input_artifact": "false",
+        "keep_input_artifact": false,
+        "type": "checksum",
+        "checksum_types": ["sha1", "sha256", "sha384", "sha512"]
+    }]
+}

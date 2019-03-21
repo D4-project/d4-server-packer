@@ -1,0 +1,6 @@
+*.box
+*.iso
+*.ova
+.bundle/
+output-*/
+packer_cache/
