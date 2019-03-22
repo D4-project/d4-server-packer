@@ -4,3 +4,4 @@
 .bundle/
 output-*/
 packer_cache/
+*.checksum

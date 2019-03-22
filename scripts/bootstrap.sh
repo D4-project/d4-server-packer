@@ -19,7 +19,7 @@ sudo apt-get -y upgrade > /dev/null 2>&1
 sudo apt-get -y autoremove > /dev/null 2>&1
 
 echo "--- Install base packages ---"
-sudo apt-get -y install git python redis-server sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate > /dev/null 2>&1
+sudo apt-get -y install git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate > /dev/null 2>&1
 ## Remove mailutils, it probably makes the script stuck on a user prompt....
 
 echo "--- Installing and configuring Postfix ---"
@@ -32,15 +32,29 @@ echo "postfix postfix/main_mailer_type string 'Satellite system'" | debconf-set-
 sudo apt-get install -y postfix > /dev/null 2>&1
 
 echo "--- Retrieving D4 ---"
-## Double check perms.
-sudo mkdir $PATH_TO_D4
-cd $PATH_TO_D4
-sudo -u d4 git clone https://github.com/D4-project/d4-core.git $PATH_TO_D4 > /dev/null 2>&1
-
+sudo -u d4 git clone https://github.com/D4-project/d4-core.git $PATH_TO_D4/d4-core
 echo "--- Installing dependencies ---"
-sudo -u d4 $PATH_TO_D4/install_server.sh
-sudo -u d4 $PATH_TO_D4/gen_cert/gen_root.sh
-sudo -u d4 $PATH_TO_D4/gen_cert/gen_cert.sh
+cd $PATH_TO_D4/d4-core/server
+sudo -u d4 ./install_server.sh
+echo "--- Creating Certificates  ---"
+cd gen_cert
+sudo -u d4 ./gen_root.sh
+sudo -u d4 ./gen_cert.sh
+
+echo "--- Writing rc.local  ---"
+# With initd:
+if [ ! -e /etc/rc.local ]
+then
+    echo '#!/bin/sh -e' | sudo tee -a /etc/rc.local
+    echo 'exit 0' | sudo tee -a /etc/rc.local
+    chmod u+x /etc/rc.local
+fi
+
+# redis-server requires the following /sys/kernel tweak
+sed -i -e '$i \echo never > /sys/kernel/mm/transparent_hugepage/enabled\n' /etc/rc.local
+sed -i -e '$i \echo 1024 > /proc/sys/net/core/somaxconn\n' /etc/rc.local
+sed -i -e '$i \sysctl vm.overcommit_memory=1\n' /etc/rc.local
+sed -i -e '$i \sudo -u d4 bash -c "(cd /home/d4/d4-core/server; ./LAUNCH.sh -l > /tmp/d4.log)"\n' /etc/rc.local
 
 TIME_END=$(date +%s)
 TIME_DELTA=$(expr ${TIME_END} - ${TIME_START})
