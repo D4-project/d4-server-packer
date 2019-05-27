@@ -19,7 +19,7 @@ sudo apt-get -y upgrade > /dev/null 2>&1
 sudo apt-get -y autoremove > /dev/null 2>&1
 
 echo "--- Install base packages ---"
-sudo apt-get -y install binutils-dev ldnsutils libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate
+sudo apt-get -y install binutils-dev ldnsutils libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate net-tools
 #sudo apt-get -y install git-core binutils-dev libldns1 libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate > /dev/null 2>&1
 
 echo "--- Installing and configuring Postfix ---"
@@ -49,12 +49,13 @@ go get github.com/D4-project/d4-goclient
 pushd $PATH_TO_D4/go/src/github.com/D4-project/d4-goclient
 make amd64l
 mkdir conf.vbox
-popd conf.vbox
+pushd conf.vbox
 echo "127.0.0.1:4443" > destination
 echo "stdin" > source
 echo "private key to change" > key
 echo "1" > version
 echo "8" > type
+echo "4096" > snaplen
 touch uuid
 popd
 
@@ -72,6 +73,10 @@ git clone https://github.com/D4-project/analyzer-d4-passivedns.git $PATH_TO_D4/a
 pushd $PATH_TO_D4/analyzer-d4-passivedns
 ./install_server.sh
 mkdir DB
+sudo cp /tmp/redis.conf ./etc/redis.conf
+pushd ./etc
+cp analyzer.conf.sample analyzer.conf
+popd
 popd
 
 echo "--- Writing rc.local  ---"
@@ -87,9 +92,9 @@ fi
 sudo sed -i -e '$i \echo never > /sys/kernel/mm/transparent_hugepage/enabled\n' /etc/rc.local
 sudo sed -i -e '$i \echo 1024 > /proc/sys/net/core/somaxconn\n' /etc/rc.local
 sudo sed -i -e '$i \sysctl vm.overcommit_memory=1\n' /etc/rc.local
-sudo sed -i -e '$i \bash -c "(cd /home/d4/d4-core/server; ./LAUNCH.sh -l > /tmp/d4.log)"\n' /etc/rc.local
-sudo sed -i -e '$i \screen -dmS "passiveDNS" \n'  /etc/rc.local
-sudo sed -i -e '$i \screen -S "passiveDNS" -X screen -t "pdns-lookup" bash -c "(/home/d4/analyzer-d4-passivedns/redis/src/redis-server /home/d4/analyzer-d4-passivedns/etc/redis.conf & > /tmp/redis-pdns.log)" \n' /etc/rc.local 
+sudo sed -i -e '$i \su d4 bash -c "(cd /home/d4/d4-core/server; ./LAUNCH.sh -l > /tmp/d4.log)"\n' /etc/rc.local
+sudo sed -i -e '$i \su d4 bash -c "(cd /home/d4/analyzer-d4-passivedns; ./launch_server.sh > /tmp/pdns.log)"\n' /etc/rc.local
+sudo sed -i -e '$i \screen -S "pdns" bash -c "(cd /home/d4/analyzer-d4-passivedns; ./launch_server.sh > /tmp/pdns.log)"\n' /etc/rc.local
 
 TIME_END=$(date +%s)
 TIME_DELTA=$(expr ${TIME_END} - ${TIME_START})
