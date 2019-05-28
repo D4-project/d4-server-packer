@@ -62,9 +62,10 @@
 
         "vboxmanage": [
             ["modifyvm", "{{.Name}}", "--memory", "{{user `memory`}}"],
-            ["modifyvm", "{{.Name}}", "--natpf1", "ssh,tcp,,2222,0.0.0.0,22" ],
-            ["modifyvm", "{{.Name}}", "--natpf1", "http,tcp,,7000,,7000" ],
-            ["modifyvm", "{{.Name}}", "--natpf1", "d4tcp,tcp,,4443,,4443" ],
+            ["modifyvm", "{{.Name}}", "--natpf1", "d4-server-ssh,tcp,127.0.0.1,2222,,22" ],
+            ["modifyvm", "{{.Name}}", "--natpf1", "d4-server-http,tcp,127.0.0.1,7000,,7000" ],
+            ["modifyvm", "{{.Name}}", "--natpf1", "d4-server-tcp,tcp,127.0.0.1,4443,,4443" ],
+            ["modifyvm", "{{.Name}}", "--natpf1", "pdns-server-http,tcp,127.0.0.1,8400,,8400" ],
             ["modifyvm", "{{.Name}}", "--audio", "none"],
             ["modifyvm", "{{.Name}}", "--usb", "off"],
             ["modifyvm", "{{.Name}}", "--vrde", "off"],
@@ -106,6 +107,11 @@
         ]
     },
     {
+        "type": "file",
+        "source": "conf/redis.conf",
+        "destination": "/tmp/redis.conf"
+    },
+    {
         "type": "shell",
         "execute_command" : "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
         "script": "scripts/users.sh"
@@ -117,7 +123,7 @@
     },
     {
         "type": "shell",
-        "execute_command" : "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        "execute_command" : "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -u d4 -E -S bash '{{ .Path }}'",
         "script": "scripts/bootstrap.sh",
         "pause_before": "10s"
     },
