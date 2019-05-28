@@ -93,8 +93,7 @@ sudo sed -i -e '$i \echo never > /sys/kernel/mm/transparent_hugepage/enabled\n' 
 sudo sed -i -e '$i \echo 1024 > /proc/sys/net/core/somaxconn\n' /etc/rc.local
 sudo sed -i -e '$i \sysctl vm.overcommit_memory=1\n' /etc/rc.local
 sudo sed -i -e '$i \su d4 bash -c "(cd /home/d4/d4-core/server; ./LAUNCH.sh -l > /tmp/d4.log)"\n' /etc/rc.local
-sudo sed -i -e '$i \su d4 bash -c "(cd /home/d4/analyzer-d4-passivedns; ./launch_server.sh > /tmp/pdns.log)"\n' /etc/rc.local
-sudo sed -i -e '$i \screen -S "pdns" bash -c "(cd /home/d4/analyzer-d4-passivedns; ./launch_server.sh > /tmp/pdns.log)"\n' /etc/rc.local
+#sudo sed -i -e '$i \su d4 bash -c "(cd /home/d4/analyzer-d4-passivedns; ./launch_server.sh > /tmp/pdns.log)"\n' /etc/rc.local
 
 TIME_END=$(date +%s)
 TIME_DELTA=$(expr ${TIME_END} - ${TIME_START})
