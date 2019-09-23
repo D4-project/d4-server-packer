@@ -9,17 +9,19 @@ UBUNTU_VERSION="$(lsb_release -r -s)"
 # Timing creation
 TIME_START=$(date +%s)
 
+ 
+
 echo "--- Installing D4 server ---"
 
 echo "--- Updating packages list ---"
-sudo apt-get -qq update > /dev/null 2>&1
+sudoapt-get -qq update > /dev/null 2>&1
 
 echo "--- Upgrading and autoremoving packages ---"
-sudo apt-get -y upgrade > /dev/null 2>&1
-sudo apt-get -y autoremove > /dev/null 2>&1
+#sudo apt-get -y upgrade > /dev/null 2>&1
+#sudo apt-get -y upgrade > /dev/null 2>&1
 
 echo "--- Install base packages ---"
-sudo apt-get -y install binutils-dev ldnsutils libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate net-tools
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install binutils-dev ldnsutils libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate net-tools
 #sudo apt-get -y install git-core binutils-dev libldns1 libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate > /dev/null 2>&1
 
 echo "--- Installing and configuring Postfix ---"
@@ -29,7 +31,7 @@ echo "--- Installing and configuring Postfix ---"
 # sudo postfix reload
 echo "postfix postfix/mailname string `hostname`.misp.local" | sudo debconf-set-selections
 echo "postfix postfix/main_mailer_type string 'Satellite system'" | sudo debconf-set-selections
-sudo apt-get install -y postfix > /dev/null 2>&1
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y postfix > /dev/null 2>&1
 
 echo "--- Retrieving D4 ---"
 git clone https://github.com/D4-project/d4-core.git $PATH_TO_D4/d4-core
@@ -44,9 +46,9 @@ popd
 popd 
 
 echo "--- Installing d4-goclient ---"
-go get github.com/satori/go.uuid
-go get github.com/D4-project/d4-goclient
+git clone https://github.com/D4-project/d4-goclient.git
 pushd $PATH_TO_D4/go/src/github.com/D4-project/d4-goclient
+git checkout -b modules
 make amd64l
 mkdir conf.vbox
 pushd conf.vbox
