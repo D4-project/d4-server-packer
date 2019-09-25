@@ -21,8 +21,7 @@ echo "--- Upgrading and autoremoving packages ---"
 #sudo apt-get -y upgrade > /dev/null 2>&1
 
 echo "--- Install base packages ---"
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install binutils-dev ldnsutils libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate net-tools
-#sudo apt-get -y install git-core binutils-dev libldns1 libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate > /dev/null 2>&1
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install binutils-dev ldnsutils libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate net-tools python-pcapy
 
 echo "--- Installing and configuring Postfix ---"
 # # Postfix Configuration: Satellite system
@@ -46,40 +45,22 @@ popd
 popd 
 
 echo "--- Installing d4-goclient ---"
-git clone https://github.com/D4-project/d4-goclient.git
-pushd $PATH_TO_D4/go/src/github.com/D4-project/d4-goclient
-git checkout -b modules
-make amd64l
-mkdir conf.vbox
-pushd conf.vbox
+echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> $PATH_TO_D4/.bashrc 
+go get github.com/D4-project/d4-goclient
+mkdir conf.maltrail
+pushd conf.maltrail
 echo "127.0.0.1:4443" > destination
 echo "stdin" > source
 echo "private key to change" > key
 echo "1" > version
-echo "8" > type
+echo "2" > type
 echo "4096" > snaplen
+echo "{\"type\":\"maltrail\"}" > metaheader.json
 touch uuid
 popd
 
-echo "--- Retrieving PassiveDNS ---"
- git clone https://github.com/gamelinux/passivedns $PATH_TO_D4/passivedns
-echo "--- Installing PassiveDNS ---"
-pushd $PATH_TO_D4/passivedns
-autoreconf --install 
-./configure
-make
-sudo make install
-popd
-echo "--- Retrieving analyzer-d4-passivedns ---"
-git clone https://github.com/D4-project/analyzer-d4-passivedns.git $PATH_TO_D4/analyzer-d4-passivedns
-pushd $PATH_TO_D4/analyzer-d4-passivedns
-./install_server.sh
-mkdir DB
-sudo cp /tmp/redis.conf ./etc/redis.conf
-pushd ./etc
-cp analyzer.conf.sample analyzer.conf
-popd
-popd
+echo "--- Installing Maltrail ---"
+git clone https://github.com/stamparm/maltrail.git
 
 echo "--- Writing rc.local  ---"
 # With initd:

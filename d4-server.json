@@ -23,7 +23,7 @@
         "ssh_pass": "Password1234",
         "update": "true",
         "vm_description": "D4, a large-scale distributed sensor network to monitor DDoS and other malicious activities relying on an open and collaborative project.",
-        "vm_name": "D4_DEMO",
+        "vm_name": "D4_maltrail",
         "vm_version": "1.0"
     },
 
@@ -65,7 +65,7 @@
             ["modifyvm", "{{.Name}}", "--natpf1", "d4-server-ssh,tcp,127.0.0.1,2222,,22" ],
             ["modifyvm", "{{.Name}}", "--natpf1", "d4-server-http,tcp,127.0.0.1,7000,,7000" ],
             ["modifyvm", "{{.Name}}", "--natpf1", "d4-server-tcp,tcp,127.0.0.1,4443,,4443" ],
-            ["modifyvm", "{{.Name}}", "--natpf1", "pdns-server-http,tcp,127.0.0.1,8400,,8400" ],
+            ["modifyvm", "{{.Name}}", "--natpf1", "maltrail-server-http,tcp,127.0.0.1,8338,,8338" ],
             ["modifyvm", "{{.Name}}", "--audio", "none"],
             ["modifyvm", "{{.Name}}", "--usb", "off"],
             ["modifyvm", "{{.Name}}", "--vrde", "off"],
