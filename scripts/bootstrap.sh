@@ -61,6 +61,21 @@ popd
 
 echo "--- Installing Maltrail ---"
 git clone https://github.com/stamparm/maltrail.git
+pushd maltrail
+patch << 'EOF' 
+--- maltrail.conf	2019-09-26 14:57:07.242176428 +0200
++++ maltrail.conf.new	2019-09-26 15:19:03.992976372 +0200
+@@ -86,7 +86,7 @@
+ #SYSLOG_SERVER 192.168.2.107:514
+ 
+ # Use only (!) in cases when LOG_SERVER should be used for log storage
+-DISABLE_LOCAL_LOG_STORAGE false
++DISABLE_LOCAL_LOG_STORAGE true
+ 
+ # Remote address for pulling (latest) trail definitions (e.g. http://192.168.2.107:8338/trails)
+ #UPDATE_SERVER http://192.168.2.107:8338/trails
+EOF
+popd
 
 echo "--- Writing rc.local  ---"
 # With initd:
