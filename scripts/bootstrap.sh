@@ -64,7 +64,22 @@ git clone https://github.com/stamparm/maltrail.git
 pushd maltrail
 patch << 'EOF' 
 --- maltrail.conf	2019-09-26 14:57:07.242176428 +0200
-+++ maltrail.conf.new	2019-09-26 15:19:03.992976372 +0200
++++ maltrail.conf.d4	2019-09-27 11:52:15.638730886 +0200
+@@ -23,12 +23,12 @@
+ #    local:9ab3cd9d67bf49d01f6a2e33d0bd9bc804ddbe6ce1ff5d219c42624851db5dbc:1000:192.168.0.0/16       # changeme!
+ 
+ # Listen address of (log collecting) UDP server
+-#UDP_ADDRESS 0.0.0.0
++UDP_ADDRESS 127.0.0.1
+ #UDP_ADDRESS ::
+ #UDP_ADDRESS fe80::12c3:7bff:fe6d:cf9b%eno1
+ 
+ # Listen port of (log collecting) UDP server
+-#UDP_PORT 8337
++UDP_PORT 8337
+ 
+ # Should server do the trail updates too (to support UPDATE_SERVER)
+ USE_SERVER_UPDATE_TRAILS false
 @@ -86,7 +86,7 @@
  #SYSLOG_SERVER 192.168.2.107:514
  
