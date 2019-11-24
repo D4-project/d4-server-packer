@@ -4,16 +4,15 @@
         "boot_command_prefix": "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
         "cpus": "1",
         "desktop": "false",
-        "disk_size": "8000",
+        "disk_size": "30000",
         "headless": "true",
         "hostname": "d4-server",
         "http_proxy": "{{env `http_proxy`}}",
         "https_proxy": "{{env `https_proxy`}}",
-        "iso_checksum": "57c3a25f2c5fd61596ce39afbff44dd49b0089a2",
+        "iso_checksum": "e637251f52ebb165d4234f157cd5ce3d2449b62a",
         "iso_checksum_type": "sha1",
-        "iso_name": "ubuntu-18.04.2-server-amd64.iso",
-        "iso_path": "iso",
-        "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.2-server-amd64.iso",
+        "iso_name": "ubuntu-19.04-server-amd64.iso",
+        "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/19.04/release/ubuntu-19.04-server-amd64.iso",
         "memory": "2048",
         "no_proxy": "{{env `no_proxy`}}",
         "ovftool_path": "ovftool",
@@ -23,7 +22,7 @@
         "ssh_pass": "Password1234",
         "update": "true",
         "vm_description": "D4, a large-scale distributed sensor network to monitor DDoS and other malicious activities relying on an open and collaborative project.",
-        "vm_name": "D4_maltrail",
+        "vm_name": "D4_snake-oil-crypto",
         "vm_version": "1.0"
     },
 
@@ -43,7 +42,7 @@
             "{{ user `iso_path` }}/{{ user `iso_name` }}",
             "{{ user `iso_url` }}"
         ],
-        "shutdown_command": "echo {{user `ssh_pass`}} | sudo -S shutdown -P now",
+        "shutdown_command": "echo {{user `ssh_pass`}} | sudo -S halt -p",
         "ssh_username": "{{user `ssh_name`}}",
         "ssh_password": "{{user `ssh_pass`}}",
         "ssh_wait_timeout": "20m",
@@ -65,7 +64,7 @@
             ["modifyvm", "{{.Name}}", "--natpf1", "d4-server-ssh,tcp,127.0.0.1,2222,,22" ],
             ["modifyvm", "{{.Name}}", "--natpf1", "d4-server-http,tcp,127.0.0.1,7000,,7000" ],
             ["modifyvm", "{{.Name}}", "--natpf1", "d4-server-tcp,tcp,127.0.0.1,4443,,4443" ],
-            ["modifyvm", "{{.Name}}", "--natpf1", "maltrail-server-http,tcp,127.0.0.1,8338,,8338" ],
+            ["modifyvm", "{{.Name}}", "--natpf1", "postgresql,tcp,127.0.0.1,5443,,5432" ],
             ["modifyvm", "{{.Name}}", "--audio", "none"],
             ["modifyvm", "{{.Name}}", "--usb", "off"],
             ["modifyvm", "{{.Name}}", "--vrde", "off"],
@@ -90,7 +89,8 @@
             "passwd/username={{ user `ssh_username` }} ",
             "-- <enter>"
         ]
-    }],
+    }
+    ],
 
     "provisioners": [{
         "environment_vars": [
@@ -105,6 +105,16 @@
         "inline": [
             "echo '%sudo    ALL=(ALL)  NOPASSWD:ALL' >> /etc/sudoers"
         ]
+    },
+    {
+        "type": "file",
+        "source": "conf/ssh-key.pub",
+        "destination": "/home/d4/.ssh/authorized_keys"
+    },
+    {
+        "type": "file",
+        "source": "conf/postgresql",
+        "destination": "/tmp/postgresql"
     },
     {
         "type": "file",

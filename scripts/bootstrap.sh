@@ -9,19 +9,17 @@ UBUNTU_VERSION="$(lsb_release -r -s)"
 # Timing creation
 TIME_START=$(date +%s)
 
- 
-
 echo "--- Installing D4 server ---"
 
 echo "--- Updating packages list ---"
-sudoapt-get -qq update > /dev/null 2>&1
+sudo apt-get -qq update > /dev/null 2>&1
 
 echo "--- Upgrading and autoremoving packages ---"
 #sudo apt-get -y upgrade > /dev/null 2>&1
 #sudo apt-get -y upgrade > /dev/null 2>&1
 
 echo "--- Install base packages ---"
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install binutils-dev ldnsutils libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate net-tools python-pcapy
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install binutils-dev ldnsutils libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate net-tools python-pcapy postgresql-plpython3-11 postgresql postgresql-contrib
 
 echo "--- Installing and configuring Postfix ---"
 # # Postfix Configuration: Satellite system
@@ -47,50 +45,44 @@ popd
 echo "--- Installing d4-goclient ---"
 echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> $PATH_TO_D4/.bashrc 
 go get github.com/D4-project/d4-goclient
-mkdir conf.maltrail
-pushd conf.maltrail
+mkdir conf.pssl
+pushd conf.pssl
 echo "127.0.0.1:4443" > destination
 echo "stdin" > source
 echo "private key to change" > key
 echo "1" > version
 echo "2" > type
 echo "4096" > snaplen
-echo "{\"type\":\"maltrail\"}" > metaheader.json
+echo "{\"type\":\"ja3-jl\"}" > metaheader.json
 touch uuid
 popd
 
-echo "--- Installing Maltrail ---"
-git clone https://github.com/stamparm/maltrail.git
-pushd maltrail
-patch << 'EOF' 
---- maltrail.conf	2019-09-26 14:57:07.242176428 +0200
-+++ maltrail.conf.d4	2019-09-27 11:52:15.638730886 +0200
-@@ -23,12 +23,12 @@
- #    local:9ab3cd9d67bf49d01f6a2e33d0bd9bc804ddbe6ce1ff5d219c42624851db5dbc:1000:192.168.0.0/16       # changeme!
- 
- # Listen address of (log collecting) UDP server
--#UDP_ADDRESS 0.0.0.0
-+UDP_ADDRESS 127.0.0.1
- #UDP_ADDRESS ::
- #UDP_ADDRESS fe80::12c3:7bff:fe6d:cf9b%eno1
- 
- # Listen port of (log collecting) UDP server
--#UDP_PORT 8337
-+UDP_PORT 8337
- 
- # Should server do the trail updates too (to support UPDATE_SERVER)
- USE_SERVER_UPDATE_TRAILS false
-@@ -86,7 +86,7 @@
- #SYSLOG_SERVER 192.168.2.107:514
- 
- # Use only (!) in cases when LOG_SERVER should be used for log storage
--DISABLE_LOCAL_LOG_STORAGE false
-+DISABLE_LOCAL_LOG_STORAGE true
- 
- # Remote address for pulling (latest) trail definitions (e.g. http://192.168.2.107:8338/trails)
- #UPDATE_SERVER http://192.168.2.107:8338/trails
-EOF
+echo "--- Installing sensor-d4-tlsfingerprinting ---"
+go get github.com/D4-project/sensor-d4-tls-fingerprinting
+
+echo "--- Installing analyzer-d4-passivessl ---"
+go get github.com/gomodule/redigo/redis
+go get github.com/lib/pq
+go get github.com/D4-project/analyzer-d4-passivessl
+
+echo "--- Installing Snake-oil-crypto ---"
+git clone https://github.com/D4-project/snake-oil-crypto.git
+pushd snake-oil-crypto
+./install-19.04.sh
 popd
+
+echo "--- Moving pssl DB  ---"
+sudo -u postgres psql -c 'create database passive_ssl;'
+sudo -u postgres psql -c 'grant all privileges on database passive_ssl to postgres;'
+sudo -u postgres psql -f /tmp/postgresql passive_ssl
+
+echo "--- Cloning slides / hands-on ---"
+git clone https://github.com/D4-project/architecture.git
+ln -sr /home/d4/architecture/docs/workshop/5-snake-oil-crypto/hands-on-support /home/d4/hands-on
+virtualenv -p python3 venv
+. ./venv/bin/activate
+pip install cryptography 
+deactivate
 
 echo "--- Writing rc.local  ---"
 # With initd:

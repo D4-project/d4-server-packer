@@ -9,5 +9,4 @@ apt-get -y clean > /dev/null 2>&1
 
 # End Cleaning
 echo "VM cleaned and rebooting for automagic reas0ns."
-reboot
-
+halt -p
