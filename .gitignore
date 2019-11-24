@@ -5,3 +5,5 @@
 output-*/
 packer_cache/
 *.checksum
+conf/
+tmp/
