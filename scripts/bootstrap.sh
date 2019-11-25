@@ -19,7 +19,12 @@ echo "--- Upgrading and autoremoving packages ---"
 #sudo apt-get -y upgrade > /dev/null 2>&1
 
 echo "--- Install base packages ---"
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y install binutils-dev ldnsutils libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate net-tools python-pcapy postgresql-plpython3-11 postgresql postgresql-contrib
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y install binutils-dev ldnsutils libldns-dev libpcap-dev libdate-simple-perl golang-go autoconf git python sudo tmux vim virtualenvwrapper virtualenv zip python3-pythonmagick htop imagemagick asciidoctor jq ntp ntpdate net-tools python-pcapy postgresql-plpython3-11 postgresql postgresql-contrib software-properties-common
+
+echo "--- Install Proper Golang ---"
+sudo add-apt-repository ppa:longsleep/golang-backports
+sudo apt-get update
+sudo apt-get install golang-go
 
 echo "--- Installing and configuring Postfix ---"
 # # Postfix Configuration: Satellite system
